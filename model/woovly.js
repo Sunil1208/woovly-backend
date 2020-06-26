@@ -9,7 +9,6 @@ const woovlySchema = new mongoose.Schema({
     photo: {
         type: Buffer,
         contentType: String,
-        required: true
     }
 },{timestamps:true})
 

@@ -1,13 +1,14 @@
 const Woovly = require('../model/woovly')
 
-exports.getBucketById = (req, res, id) => {
+exports.getBucketById = (req, res,next, id) => {
     Woovly.findById(id).exec((err,data)=> {
         if(err){
             return res.status(400).json({
                 error:"Bucket data not found in the database"
             })
         }
-        res.json(data)
+        req.bucketData =data
+        next()
     })
 }
 
@@ -30,32 +31,33 @@ exports.getAllBucketList = (req, res) => {
                 error:"No data found"
             })
         }
+        res.json(bucketList)
     })
 }
 
 exports.updateBucketData = (req, res) => {
-    Woovly.findByIdAndUpdate(
-        {_id:req.body._id},
-        {$set:req.body},
-        {new: true, useFindAndModify:false},
-        (err,bucket) =>{
-            if(err){
-                return res.status(400).json({
-                    error:"Unable to update the data"
-                })
-            }
-            res.json(bucket)
-        }
-    )
+    const bucket = req.bucketData;
+    bucket.title = req.body.title;
+   bucket.save((err,updatedBucketData) => {
+       if(err){
+           return res.status(400).json({
+               error:"Failed to update the data"
+           })
+       }
+       res.json(updatedBucketData)
+   })
 }
 
-exports.removeBucket = (req, res) => {
-    Woovly.findByIdAndDelete({_id:req.body._id},(err,result) => {
-        if(err){
-            return res.status(400).json({
-                error: "Unable to delete the bucket list"
-            })
-        }
-        res.json(result)
-    })
+exports.removeBucket = (req, res,id) => {
+    const bucket = req.bucketData
+   bucket.remove((err,bucket) => {
+       if(err){
+           return res.status(400).json({
+               error: "Failed to delete the buckelist"
+           })
+       }
+       res.json({
+           message:`${bucket.title} is successfully deleted`
+       })
+   })
 }
